@@ -593,3 +593,343 @@
     boot();
   }
 })();
+(() => {
+  const MODE_KEY = "ai_coach_language_mode_v1";
+  let coachMode = localStorage.getItem(MODE_KEY) || "both";
+
+  function modeInstruction(mode) {
+    if (mode === "egyptian") {
+      return `
+IMPORTANT LANGUAGE INSTRUCTION:
+Speak to the learner in natural Egyptian Arabic (Masri / Egyptian colloquial Arabic).
+Do NOT use formal Modern Standard Arabic unless absolutely necessary.
+The tone should sound like a normal Egyptian conversation.
+Put the main Egyptian response in the "arabic" field.
+"explanation_ar" and "reply_arabic" must also be Egyptian colloquial Arabic.
+You may include English only when teaching or correcting an English sentence.
+`;
+    }
+
+    if (mode === "english") {
+      return `
+IMPORTANT LANGUAGE INSTRUCTION:
+Speak primarily in natural English.
+Use clear conversational English.
+If Arabic explanation is needed, make it short and in Egyptian Arabic, not formal Arabic.
+`;
+    }
+
+    return `
+IMPORTANT LANGUAGE INSTRUCTION:
+Give the learner BOTH languages.
+First give the natural English response.
+Then explain or translate it in natural Egyptian Arabic (Masri), not formal Arabic.
+The "arabic", "explanation_ar" and "reply_arabic" fields must sound Egyptian and conversational.
+`;
+  }
+
+  function getVoice(lang) {
+    const voices = speechSynthesis.getVoices() || [];
+
+    if (lang === "ar-EG") {
+      return (
+        voices.find(v =>
+          v.lang?.toLowerCase() === "ar-eg"
+        ) ||
+        voices.find(v =>
+          v.lang?.toLowerCase().startsWith("ar")
+        ) ||
+        null
+      );
+    }
+
+    return (
+      voices.find(v =>
+        v.lang?.toLowerCase() === "en-us"
+      ) ||
+      voices.find(v =>
+        v.lang?.toLowerCase().startsWith("en")
+      ) ||
+      null
+    );
+  }
+
+  function say(text, lang, done) {
+    if (!text || !("speechSynthesis" in window)) {
+      if (done) done();
+      return;
+    }
+
+    const u = new SpeechSynthesisUtterance(text);
+
+    u.lang = lang;
+    u.rate = 0.95;
+    u.pitch = 1;
+
+    const voice = getVoice(lang);
+    if (voice) u.voice = voice;
+
+    u.onend = () => {
+      if (done) done();
+    };
+
+    speechSynthesis.speak(u);
+  }
+
+  function speakAnswer(data) {
+    if (
+      localStorage.getItem("coach_voice_enabled") === "0"
+    ) return;
+
+    speechSynthesis.cancel();
+
+    const english =
+      data?.reply_english ||
+      data?.english ||
+      "";
+
+    const arabic =
+      data?.arabic ||
+      data?.explanation_ar ||
+      data?.reply_arabic ||
+      "";
+
+    if (coachMode === "egyptian") {
+      say(arabic || data?.message, "ar-EG");
+      return;
+    }
+
+    if (coachMode === "english") {
+      say(english || data?.message, "en-US");
+      return;
+    }
+
+    if (english && arabic) {
+      say(english, "en-US", () => {
+        setTimeout(() => {
+          say(arabic, "ar-EG");
+        }, 250);
+      });
+    } else if (english) {
+      say(english, "en-US");
+    } else {
+      say(arabic || data?.message, "ar-EG");
+    }
+  }
+
+  function wrapAI() {
+    if (
+      !window.Cloud ||
+      !Cloud.invokeAI ||
+      Cloud.__egyptianVoiceMode
+    ) return false;
+
+    const original = Cloud.invokeAI.bind(Cloud);
+
+    Cloud.invokeAI = async payload => {
+      const cleanText = payload?.text || "";
+
+      const enhancedPayload = {
+        ...payload,
+        voice_mode: coachMode,
+        text:
+          cleanText +
+          "\n\n" +
+          modeInstruction(coachMode)
+      };
+
+      const data = await original(enhancedPayload);
+
+      setTimeout(() => {
+        speakAnswer(data);
+      }, 150);
+
+      return data;
+    };
+
+    Cloud.__egyptianVoiceMode = true;
+    return true;
+  }
+
+  function setMicLanguage() {
+    const select =
+      document.getElementById("aiMicLang");
+
+    if (!select) return;
+
+    if (coachMode === "egyptian") {
+      select.value = "ar-EG";
+    } else {
+      select.value = "en-US";
+    }
+
+    select.dispatchEvent(
+      new Event("change")
+    );
+  }
+
+  function addModeUI() {
+    if (
+      document.getElementById("aiCoachLanguageMode")
+    ) return true;
+
+    const bar =
+      document.querySelector(".aiVoiceBar");
+
+    if (!bar) return false;
+
+    // Turn off the old automatic English-only speaker
+    // because this patch controls the correct language voice.
+    const oldAuto =
+      document.getElementById("aiAutoSpeak");
+
+    if (
+      oldAuto &&
+      oldAuto.textContent.includes("شغال")
+    ) {
+      oldAuto.click();
+    }
+
+    if (oldAuto) {
+      oldAuto.style.display = "none";
+    }
+
+    const box = document.createElement("div");
+
+    box.style.cssText = `
+      grid-column:1/-1;
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:8px;
+      align-items:center;
+      padding:10px;
+      border-radius:14px;
+      background:#f8f9fc;
+      border:1px solid #eaecf0;
+    `;
+
+    box.innerHTML = `
+      <select
+        id="aiCoachLanguageMode"
+        style="
+          min-height:46px;
+          border-radius:12px;
+          border:1px solid #d0d5dd;
+          padding:8px 12px;
+          font:inherit;
+          font-weight:800;
+          background:white;
+        "
+      >
+        <option value="egyptian">
+          🇪🇬 مصري - كلام وصوت
+        </option>
+
+        <option value="english">
+          🇺🇸 English - Voice & Chat
+        </option>
+
+        <option value="both">
+          🔄 English + مصري
+        </option>
+      </select>
+
+      <button
+        id="coachVoiceToggle"
+        type="button"
+        style="
+          min-height:46px;
+          border-radius:12px;
+          border:1px solid #d0d5dd;
+          padding:8px 12px;
+          font:inherit;
+          font-weight:800;
+          background:white;
+          cursor:pointer;
+        "
+      ></button>
+    `;
+
+    bar.prepend(box);
+
+    const modeSelect =
+      document.getElementById("aiCoachLanguageMode");
+
+    const voiceBtn =
+      document.getElementById("coachVoiceToggle");
+
+    modeSelect.value = coachMode;
+
+    function refreshVoiceButton() {
+      const on =
+        localStorage.getItem("coach_voice_enabled") !== "0";
+
+      voiceBtn.textContent =
+        on
+          ? "🔊 الصوت شغال"
+          : "🔇 الصوت مقفول";
+    }
+
+    refreshVoiceButton();
+
+    modeSelect.onchange = () => {
+      coachMode = modeSelect.value;
+
+      localStorage.setItem(
+        MODE_KEY,
+        coachMode
+      );
+
+      setMicLanguage();
+      speechSynthesis.cancel();
+    };
+
+    voiceBtn.onclick = () => {
+      const isOn =
+        localStorage.getItem("coach_voice_enabled") !== "0";
+
+      localStorage.setItem(
+        "coach_voice_enabled",
+        isOn ? "0" : "1"
+      );
+
+      if (isOn) {
+        speechSynthesis.cancel();
+      }
+
+      refreshVoiceButton();
+    };
+
+    setMicLanguage();
+
+    return true;
+  }
+
+  function bootEgyptianMode() {
+    wrapAI();
+    addModeUI();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      () => {
+        setTimeout(bootEgyptianMode, 600);
+      }
+    );
+  } else {
+    setTimeout(bootEgyptianMode, 600);
+  }
+
+  const timer = setInterval(() => {
+    const a = wrapAI();
+    const b = addModeUI();
+
+    if (
+      Cloud?.__egyptianVoiceMode &&
+      document.getElementById("aiCoachLanguageMode")
+    ) {
+      clearInterval(timer);
+    }
+  }, 500);
+})();
