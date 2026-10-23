@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fluency Coach Pro">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <title>English Fluency Coach Pro</title>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">ENGLISH FLUENCY COACH PRO</div>
+      <h1 id="screenTitle">الرئيسية</h1>
+    </div>
+    <div class="topActions">
+      <span id="cloudBadge" class="statusBadge offline">Local</span>
+      <button id="settingsBtn" class="iconBtn">⚙️</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="homeScreen" class="screen active">
+      <div class="hero card dark">
+        <div>
+          <span class="pill light">مدرّبك اليومي</span>
+          <h2>اتكلم طبيعي، مش تحفظ كلمات.</h2>
+          <p>English → (النطق بالعربي) → المعنى → اسمع → رد → راجع بذكاء.</p>
+          <button class="primary white" data-go="learn">ابدأ درس اليوم ▶</button>
+        </div>
+        <div class="heroRing"><strong id="streakVal">0</strong><span>🔥 Streak</span></div>
+      </div>
+
+      <div class="statsGrid">
+        <div class="mini card"><strong id="homeLearned">0</strong><span>اتعلمتها</span></div>
+        <div class="mini card"><strong id="homeDue">0</strong><span>مراجعة اليوم</span></div>
+        <div class="mini card"><strong id="homeXp">0</strong><span>XP</span></div>
+      </div>
+
+      <div class="sectionHead"><h3>اختار اللي محتاجه دلوقتي</h3></div>
+      <div class="quickGrid">
+        <button class="quickCard" data-go="ai"><span>🤖</span><b>AI Coach</b><small>محادثة وتصحيح</small></button>
+        <button class="quickCard" data-go="speaking"><span>🎙️</span><b>Speaking</b><small>اسمع وسجّل</small></button>
+        <button class="quickCard" data-go="review"><span>🧠</span><b>Smart Review</b><small>مراجعة حسب مستواك</small></button>
+        <button class="quickCard" data-go="dashboard"><span>📊</span><b>Dashboard</b><small>اعرف نقط قوتك</small></button>
+      </div>
+
+      <div class="card tipCard">
+        <b>قاعدة التطبيق:</b>
+        <p>النطق العربي مساعد مؤقت فقط. اسمع الصوت أولًا، وبعد فترة اخفِ النطق العربي وحاول تعتمد على ودنك.</p>
+      </div>
+    </section>
+
+    <section id="learnScreen" class="screen">
+      <div class="lessonHeader">
+        <div class="progressTrack"><div id="lessonBar"></div></div>
+        <span id="lessonCount">1 / 20</span>
+      </div>
+      <div id="lessonCard"></div>
+      <div class="ratingPanel">
+        <button data-rating="again" class="rate again">تاني<br><small>1 دقيقة</small></button>
+        <button data-rating="hard" class="rate hard">صعبة<br><small>1 يوم</small></button>
+        <button data-rating="good" class="rate good">كويسة<br><small>3 أيام</small></button>
+        <button data-rating="easy" class="rate easy">سهلة<br><small>7 أيام</small></button>
+      </div>
+    </section>
+
+    <section id="reviewScreen" class="screen">
+      <div class="card">
+        <span class="pill">Spaced Repetition</span>
+        <h2>المراجعة الذكية</h2>
+        <p>الجمل اللي بتغلط فيها ترجع أسرع، والجمل السهلة تبعد تدريجيًا.</p>
+      </div>
+      <div id="reviewCard"></div>
+      <button id="startReviewBtn" class="primary full">ابدأ مراجعة المستحق اليوم</button>
+    </section>
+
+    <section id="aiScreen" class="screen">
+      <div class="card">
+        <span class="pill accent">AI Coach</span>
+        <h2>اختار طريقة التدريب</h2>
+        <div class="modeTabs">
+          <button class="mode active" data-mode="conversation">محادثة</button>
+          <button class="mode" data-mode="correct">صححني</button>
+          <button class="mode" data-mode="upgrade">ارفع المستوى</button>
+          <button class="mode" data-mode="generate">ولّد درس</button>
+        </div>
+        <div class="fieldRow">
+          <select id="aiLevel">
+            <option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option>
+          </select>
+          <select id="aiScenario">
+            <option value="daily">Daily Life — يومي</option>
+            <option value="sales">Sales — سيلز</option>
+            <option value="meetings">Meetings — اجتماعات</option>
+            <option value="negotiation">Negotiation — تفاوض</option>
+            <option value="interview">Job Interview — مقابلة</option>
+            <option value="travel">Travel — سفر</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="chatLog" class="chatLog"></div>
+      <div class="composer card">
+        <textarea id="aiInput" rows="3" placeholder="اكتب بالإنجليزي أو العربي..."></textarea>
+        <div class="composerActions">
+          <button id="aiSend" class="primary">إرسال للمدرب</button>
+          <button id="aiExample" class="secondary">مثال</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="speakingScreen" class="screen">
+      <div class="card">
+        <span class="pill">Speaking Practice</span>
+        <h2>اسمع → سجّل → قارن</h2>
+        <p>التقييم الأساسي يقيس مدى تطابق الكلام المسموع مع الجملة. ده مؤشر تدريب، مش تشخيص دقيق للّكنة.</p>
+      </div>
+      <div id="speakingCard"></div>
+      <div class="recordRow">
+        <button id="recordBtn" class="recordBtn">🎙️ ابدأ التسجيل</button>
+        <span id="recordTimer">00:00</span>
+      </div>
+      <div id="speechResult" class="card resultCard" hidden></div>
+    </section>
+
+    <section id="dashboardScreen" class="screen">
+      <div class="card">
+        <span class="pill">Your Progress</span>
+        <h2>لوحة تقدمك</h2>
+        <div class="skillBars">
+          <div><label>Speaking <span id="spkScore">B1</span></label><div class="bar"><i style="width:45%"></i></div></div>
+          <div><label>Listening <span>B1</span></label><div class="bar"><i style="width:50%"></i></div></div>
+          <div><label>Vocabulary <span>B1</span></label><div class="bar"><i style="width:48%"></i></div></div>
+          <div><label>Grammar <span>A2</span></label><div class="bar"><i style="width:35%"></i></div></div>
+          <div><label>Business English <span>B2</span></label><div class="bar"><i style="width:62%"></i></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>إحصائيات</h3>
+        <div class="statList">
+          <div><b id="dashLearned">0</b><span>جملة متعلمة</span></div>
+          <div><b id="dashReviewed">0</b><span>مراجعة</span></div>
+          <div><b id="dashSpeaking">0</b><span>محاولة نطق</span></div>
+          <div><b id="dashXp">0</b><span>XP</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="accountScreen" class="screen">
+      <div class="card">
+        <span class="pill">Cloud Account</span>
+        <h2>حسابك والمزامنة</h2>
+        <div id="accountState"></div>
+        <label>البريد الإلكتروني
+          <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email">
+        </label>
+        <button id="loginBtn" class="primary full">إرسال رابط تسجيل الدخول</button>
+        <button id="logoutBtn" class="secondary full" hidden>تسجيل الخروج</button>
+      </div>
+
+      <div class="card">
+        <h3>إعداد الاتصال بالسحابة</h3>
+        <p>Supabase URL وPublishable Key آمنان للاستخدام في الواجهة مع RLS. مفتاح OpenAI لا يوضع هنا إطلاقًا.</p>
+        <label>Supabase URL<input id="supabaseUrl" placeholder="https://xxxx.supabase.co"></label>
+        <label>Supabase Publishable Key<input id="supabaseKey" placeholder="sb_publishable_..."></label>
+        <button id="saveCloudConfig" class="secondary full">حفظ وتجربة الاتصال</button>
+        <div id="cloudTest" class="mutedBox">الوضع الحالي: Local Mode</div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottomNav">
+    <button class="navItem active" data-screen="home"><span>⌂</span><small>الرئيسية</small></button>
+    <button class="navItem" data-screen="learn"><span>▶</span><small>اتعلم</small></button>
+    <button class="navItem" data-screen="ai"><span>🤖</span><small>AI Coach</small></button>
+    <button class="navItem" data-screen="review"><span>🧠</span><small>مراجعة</small></button>
+    <button class="navItem" data-screen="dashboard"><span>📊</span><small>تقدمك</small></button>
+  </nav>
+
+  <div id="settingsModal" class="modal" hidden>
+    <div class="sheet">
+      <div class="sectionHead"><h3>الإعدادات</h3><button id="closeSettings" class="iconBtn">✕</button></div>
+      <label>الصوت
+        <select id="voiceLocale"><option value="en-US">American English</option><option value="en-GB">British English</option></select>
+      </label>
+      <label>سرعة النطق
+        <select id="voiceRate"><option value=".75">0.75x</option><option value=".9">0.9x</option><option value="1" selected>1.0x</option><option value="1.1">1.1x</option></select>
+      </label>
+      <label class="toggle"><span>إظهار النطق بالعربي</span><input id="showPhonetic" type="checkbox" checked></label>
+      <button class="secondary full" data-go="account">👤 الحساب والسحابة</button>
+      <button class="secondary full" data-go="speaking">🎙️ تدريب النطق</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="data.js"></script>
+<script src="cloud.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
