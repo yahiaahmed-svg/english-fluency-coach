@@ -160,8 +160,11 @@
         <div id="accountState"></div>
         <label>البريد الإلكتروني
           <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email">
+        <label>كلمة المرور
+          <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password">
         </label>
-        <button id="loginBtn" class="primary full">إرسال رابط تسجيل الدخول</button>
+        </label>
+        <button id="loginBtn" class="primary full">تسجيل الدخول</button>
         <button id="logoutBtn" class="secondary full" hidden>تسجيل الخروج</button>
       </div>
 
@@ -204,5 +207,6 @@
 <script src="data.js"></script>
 <script src="cloud.js"></script>
 <script src="app.js"></script>
+<script src="auth-patch.js"></script>
 </body>
 </html>
